@@ -1,0 +1,68 @@
+[
+  {
+    "id": "j001",
+    "title": "Senior Data Scientist",
+    "company": "TechCorp AI",
+    "location": "Remote",
+    "salary": "$130k - $180k",
+    "description": "Lead the development and deployment of machine learning models that drive business decisions. Work with cross-functional teams to translate business problems into ML solutions. Experience with PyTorch or TensorFlow, feature engineering, and MLOps practices required.",
+    "skills": ["Python", "Machine Learning", "PyTorch", "TensorFlow", "SQL", "Statistics", "MLOps", "Feature Engineering", "AWS"],
+    "experience_required": "4+ years",
+    "type": "Full-time"
+  },
+  {
+    "id": "j002",
+    "title": "Full Stack Engineer",
+    "company": "StartupXYZ",
+    "location": "New York, NY",
+    "salary": "$110k - $150k",
+    "description": "Build and scale web applications used by millions of users. You'll own both frontend and backend systems, working with React, Node.js, and AWS. Strong TypeScript skills and experience with PostgreSQL required.",
+    "skills": ["React", "Node.js", "TypeScript", "AWS", "PostgreSQL", "Docker", "GraphQL", "REST API"],
+    "experience_required": "3+ years",
+    "type": "Full-time"
+  },
+  {
+    "id": "j003",
+    "title": "DevOps / Platform Engineer",
+    "company": "CloudBase Inc",
+    "location": "Austin, TX",
+    "salary": "$120k - $165k",
+    "description": "Design, build, and maintain CI/CD pipelines, Kubernetes clusters, and cloud infrastructure on AWS. You'll collaborate with development teams to ensure scalable and reliable deployments.",
+    "skills": ["Kubernetes", "Docker", "Terraform", "AWS", "CI/CD", "Python", "Linux", "Helm", "Prometheus"],
+    "experience_required": "3+ years",
+    "type": "Full-time"
+  },
+  {
+    "id": "j004",
+    "title": "Machine Learning Engineer",
+    "company": "AI Labs",
+    "location": "Remote",
+    "salary": "$140k - $195k",
+    "description": "Build production ML systems at scale. You'll create efficient training pipelines, optimize model serving, and implement MLOps best practices. Experience with distributed training and model optimization required.",
+    "skills": ["Python", "TensorFlow", "PyTorch", "MLOps", "Kubernetes", "Feature Engineering", "CUDA", "Spark"],
+    "experience_required": "3+ years",
+    "type": "Full-time"
+  },
+  {
+    "id": "j005",
+    "title": "Backend Engineer (Python/Go)",
+    "company": "FinTech Pro",
+    "location": "Chicago, IL",
+    "salary": "$115k - $155k",
+    "description": "Build high-performance APIs and microservices for financial applications processing millions of transactions. Deep knowledge of database optimization, caching, and async programming required.",
+    "skills": ["Python", "Go", "FastAPI", "PostgreSQL", "Redis", "gRPC", "Kafka", "Microservices"],
+    "experience_required": "3+ years",
+    "type": "Full-time"
+  },
+  {
+    "id": "j006",
+    "title": "Product Manager - AI Products",
+    "company": "ProductCo",
+    "location": "San Francisco, CA",
+    "salary": "$130k - $180k",
+    "description": "Drive product strategy for AI-powered consumer products. Work with engineering, design, and data science teams. Experience with data analysis and understanding of ML concepts essential.",
+    "skills": ["Product Strategy", "Agile", "Data Analysis", "User Research", "Roadmapping", "A/B Testing", "SQL"],
+    "experience_required": "4+ years",
+    "type": "Full-time"
+  }
+]

@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Career Roadmap | CareerAI</title>
+  <meta name="description" content="Personalized week-by-week learning roadmap with skill gap analysis, curated resources, and project recommendations."/>
+  <link rel="stylesheet" href="css/style.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" defer></script>
+  <style>
+    .page-hero { padding: 3rem 0 2rem; }
+    .setup-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
+    }
+    @media(max-width:640px){ .setup-grid{ grid-template-columns:1fr; } }
+
+    .gap-pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 5px 12px;
+      border-radius: var(--r-pill);
+      font-size: .78rem; font-weight: 600;
+      background: rgba(244,63,94,.1);
+      color: var(--r);
+      border: 1px solid rgba(244,63,94,.25);
+    }
+    .gap-pill.critical { background:rgba(244,63,94,.15); border-color:rgba(244,63,94,.35); }
+    .gap-pill.high     { background:rgba(245,158,11,.1);  color:var(--o); border-color:rgba(245,158,11,.3); }
+    .gap-pill.medium   { background:rgba(6,182,212,.1);   color:var(--c); border-color:rgba(6,182,212,.3); }
+    .gap-pill.low      { background:rgba(16,185,129,.1);  color:var(--g); border-color:rgba(16,185,129,.3); }
+
+    .week-card {
+      background: rgba(255,255,255,.03);
+      border: 1px solid var(--border);
+      border-radius: var(--r-md);
+      padding: 1rem 1.25rem;
+      margin: .5rem 0;
+      transition: var(--mid);
+    }
+    .week-card:hover { background: rgba(255,255,255,.06); border-color: var(--border-p); }
+
+    .quick-win-item {
+      display: flex; align-items: flex-start; gap: .75rem;
+      padding: .75rem 1rem;
+      background: rgba(16,185,129,.06);
+      border: 1px solid rgba(16,185,129,.2);
+      border-radius: var(--r-md);
+      margin: .5rem 0;
+      font-size: .9rem;
+    }
+    .quick-win-item::before {
+      content: '→';
+      color: var(--g);
+      font-weight: 700;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+  </style>
+</head>
+<body>
+
+<nav class="navbar" id="mainNav">
+  <a href="index.html" class="nav-logo">
+    <div class="nav-logo-icon">&#129504;</div>
+    <span class="nav-logo-text">Career<span>AI</span></span>
+  </a>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="resume.html">Resume</a></li>
+    <li><a href="interview.html">Interview</a></li>
+    <li><a href="roadmap.html" class="active">Roadmap</a></li>
+    <li><a href="jobs.html">Jobs</a></li>
+  </ul>
+  <div class="nav-toggle" onclick="document.getElementById('navLinks').classList.toggle('open')">
+    <span></span><span></span><span></span>
+  </div>
+</nav>
+
+<div class="page-wrapper">
+<div class="container">
+
+  <!-- Page Hero -->
+  <div class="page-hero">
+    <div class="hero-badge" style="margin-bottom:1rem;">
+      <span class="dot"></span>Personalized AI Learning Roadmap
+    </div>
+    <h1 style="font-size:clamp(2rem,4vw,3.2rem);">
+      <span class="gradient-text">Skill Gap</span> &amp; Roadmap Generator
+    </h1>
+    <p class="text-2 mt-1" style="max-width:560px;">
+      Identify your exact skill gaps and get a personalized week-by-week learning plan
+      with curated courses, daily tasks, and mini-projects.
+    </p>
+  </div>
+
+  <!-- Input Section -->
+  <div class="glass-card ca-g mb-3" id="roadmapSetup">
+    <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:1.5rem;">
+      <div class="card-icon ci-g" style="margin:0;width:40px;height:40px;font-size:1.2rem;">&#9881;</div>
+      <h3 style="font-size:1rem;">Configure Your Roadmap</h3>
+    </div>
+
+    <div class="setup-grid">
+      <div class="form-group">
+        <label class="form-label" for="rmTargetRole">Target Role *</label>
+        <input type="text" class="form-control" id="rmTargetRole"
+          placeholder="e.g. Senior Data Scientist, ML Engineer, DevOps Lead"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="rmCompanyType">Target Company Type</label>
+        <select class="form-control" id="rmCompanyType">
+          <option value="FAANG/Top Tech">FAANG / Top Tech</option>
+          <option value="Mid-size Tech Company" selected>Mid-size Tech</option>
+          <option value="Startup">Startup</option>
+          <option value="Consulting">Consulting</option>
+          <option value="Finance/Banking">Finance / Banking</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="rmCurrentSkills">Current Skills (comma-separated) *</label>
+      <input type="text" class="form-control" id="rmCurrentSkills"
+        placeholder="e.g. Python, SQL, Pandas, Basic Machine Learning, Git"/>
+    </div>
+
+    <div class="setup-grid">
+      <div class="form-group">
+        <label class="form-label" for="rmHours">Hours Available Per Week</label>
+        <select class="form-control" id="rmHours">
+          <option value="5">5 hrs/week (Light)</option>
+          <option value="10">10 hrs/week (Moderate)</option>
+          <option value="15" selected>15 hrs/week (Dedicated)</option>
+          <option value="25">25 hrs/week (Intensive)</option>
+          <option value="40">40 hrs/week (Full-time prep)</option>
+        </select>
+      </div>
+      <div class="form-group" style="display:flex;align-items:flex-end;">
+        <button class="btn btn-primary btn-lg w-full" onclick="generateRoadmap()">
+          Generate My Roadmap &rarr;
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div id="roadmapLoading" class="glass-card text-center hidden" style="padding:4rem;position:relative;overflow:hidden;">
+    <div style="position:absolute;inset:0;background:radial-gradient(circle at 50% 30%,rgba(16,185,129,.06),transparent 70%);pointer-events:none;"></div>
+    <div class="ai-pulse-ring" style="margin:0 auto 1.5rem;width:70px;height:70px;">
+      <div style="width:70px;height:70px;background:linear-gradient(135deg,rgba(16,185,129,.2),rgba(6,182,212,.15));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:2rem;">&#128506;</div>
+    </div>
+    <div class="ai-dots mb-2"><div class="ai-dot"></div><div class="ai-dot"></div><div class="ai-dot"></div></div>
+    <p style="font-size:1rem;color:var(--t2);" id="roadmapLoadingMsg">Analyzing skill gaps...</p>
+    <p class="text-3 text-sm mt-1">Building your personalized roadmap. This takes 20&ndash;40 seconds.</p>
+  </div>
+
+  <!-- Results -->
+  <div id="roadmapResults" class="hidden">
+
+    <!-- Summary -->
+    <div class="stats-grid mb-3" id="roadmapSummaryStats">
+      <div class="stat-card"><div class="stat-value gradient-text"  id="rmReadiness">&mdash;</div><div class="stat-label">Readiness Score</div></div>
+      <div class="stat-card"><div class="stat-value text-cyan"      id="rmTotalWeeks">&mdash;</div><div class="stat-label">Total Weeks</div></div>
+      <div class="stat-card"><div class="stat-value text-warning"   id="rmGapCount">&mdash;</div><div class="stat-label">Skill Gaps</div></div>
+      <div class="stat-card"><div class="stat-value text-success"   id="rmPhaseCount">&mdash;</div><div class="stat-label">Phases</div></div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tab-nav">
+      <button class="tab-btn active" onclick="switchRoadmapTab('gaps')"     id="rm-tab-gaps">Skill Gaps</button>
+      <button class="tab-btn"        onclick="switchRoadmapTab('roadmap')"  id="rm-tab-roadmap">Weekly Roadmap</button>
+      <button class="tab-btn"        onclick="switchRoadmapTab('portfolio')" id="rm-tab-portfolio">Portfolio Projects</button>
+      <button class="tab-btn"        onclick="switchRoadmapTab('quickwins')" id="rm-tab-quickwins">Quick Wins</button>
+    </div>
+
+    <!-- Gaps -->
+    <div class="tab-content active" id="rm-tab-gaps-content">
+      <div class="glass-card">
+        <h3 class="mb-3">Identified Skill Gaps</h3>
+        <div id="skillGapsGrid" class="grid-2"></div>
+      </div>
+    </div>
+
+    <!-- Roadmap -->
+    <div class="tab-content" id="rm-tab-roadmap-content">
+      <div id="phasesContainer"></div>
+    </div>
+
+    <!-- Portfolio -->
+    <div class="tab-content" id="rm-tab-portfolio-content">
+      <div id="portfolioGrid" class="grid-2"></div>
+    </div>
+
+    <!-- Quick Wins -->
+    <div class="tab-content" id="rm-tab-quickwins-content">
+      <div class="glass-card">
+        <h3 class="mb-2">Quick Wins &mdash; Do These in 48 Hours</h3>
+        <div id="quickWinsList"></div>
+        <div class="divider"></div>
+        <h3 class="mb-2">Interview Prep Focus Areas</h3>
+        <div id="interviewPrepList"></div>
+      </div>
+    </div>
+
+  </div><!-- /roadmapResults -->
+
+</div>
+</div>
+
+<script src="js/app.js"></script>
+<script src="js/roadmap.js"></script>
+</body>
+</html>

@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Interview Simulator | CareerAI</title>
+  <meta name="description" content="AI-powered mock interview with voice input, emotion detection, STAR analysis, and real-time feedback."/>
+  <link rel="stylesheet" href="css/style.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" defer></script>
+  <style>
+    .page-hero { padding: 3rem 0 2rem; }
+
+    /* Session arena grid */
+    .arena-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 1.25rem;
+      align-items: start;
+    }
+    @media(max-width:800px){ .arena-grid{ grid-template-columns:1fr; } }
+
+    /* Setup grid */
+    .setup-grid {
+      display: grid;
+      grid-template-columns: repeat(3,1fr);
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    @media(max-width:640px){ .setup-grid{ grid-template-columns:1fr; } }
+
+    /* Active question card styling */
+    .question-card {
+      background: linear-gradient(135deg,rgba(124,111,255,.12),rgba(6,182,212,.07));
+      border: 1px solid rgba(124,111,255,.28);
+      border-radius: var(--r-lg);
+      padding: 1.75rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .question-card::before {
+      content: '';
+      position: absolute; top:0; left:0; right:0; height:3px;
+      background: var(--grad-p);
+    }
+
+    /* Webcam frame */
+    .webcam-frame {
+      position: relative;
+      border-radius: var(--r-md);
+      overflow: hidden;
+      background: #000;
+      aspect-ratio: 4/3;
+      border: 1px solid rgba(124,111,255,.2);
+    }
+    .webcam-frame video, .webcam-frame canvas {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%; object-fit: cover;
+    }
+
+    /* Report card */
+    .score-breakdown-grid {
+      display: grid;
+      grid-template-columns: repeat(5,1fr);
+      gap: .75rem;
+      margin-bottom: 1.5rem;
+    }
+    @media(max-width:640px){ .score-breakdown-grid{ grid-template-columns:repeat(2,1fr); } }
+
+    /* Timer */
+    .record-timer {
+      font-family: var(--mono);
+      font-size: 1.5rem;
+      color: var(--r);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+  </style>
+</head>
+<body>
+
+<nav class="navbar" id="mainNav">
+  <a href="index.html" class="nav-logo">
+    <div class="nav-logo-icon">&#129504;</div>
+    <span class="nav-logo-text">Career<span>AI</span></span>
+  </a>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="resume.html">Resume</a></li>
+    <li><a href="interview.html" class="active">Interview</a></li>
+    <li><a href="roadmap.html">Roadmap</a></li>
+    <li><a href="jobs.html">Jobs</a></li>
+  </ul>
+  <div class="nav-toggle" onclick="document.getElementById('navLinks').classList.toggle('open')">
+    <span></span><span></span><span></span>
+  </div>
+</nav>
+
+<div class="page-wrapper">
+<div class="container">
+
+  <!-- Page Hero -->
+  <div class="page-hero">
+    <div class="hero-badge" style="margin-bottom:1rem;">
+      <span class="dot"></span>Voice-Powered AI Interview Coach
+    </div>
+    <h1 style="font-size:clamp(2rem,4vw,3.2rem);">
+      <span class="gradient-text">Interview</span> Simulator
+    </h1>
+    <p class="text-2 mt-1" style="max-width:560px;">
+      Real-time voice-based mock interviews with STAR method analysis,
+      confidence scoring, emotion detection, and actionable feedback.
+    </p>
+  </div>
+
+  <!-- ── SETUP SECTION ── -->
+  <div class="glass-card ca-p mb-3" id="setupSection">
+    <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:1.5rem;">
+      <div class="card-icon ci-p" style="margin:0;width:40px;height:40px;font-size:1.2rem;">&#9881;</div>
+      <h3 style="font-size:1rem;">Session Setup</h3>
+    </div>
+
+    <div class="setup-grid">
+      <div class="form-group">
+        <label class="form-label" for="interviewRole">Target Role</label>
+        <input type="text" class="form-control" id="interviewRole" value="Software Engineer" placeholder="e.g. Data Scientist"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="experienceLevel">Experience Level</label>
+        <select class="form-control" id="experienceLevel">
+          <option value="Entry">Entry (0&ndash;2 yrs)</option>
+          <option value="Mid" selected>Mid (2&ndash;5 yrs)</option>
+          <option value="Senior">Senior (5&ndash;10 yrs)</option>
+          <option value="Lead">Lead / Staff</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="interviewType">Interview Type</label>
+        <select class="form-control" id="interviewType">
+          <option value="Mixed (Technical + Behavioral)">Mixed</option>
+          <option value="Technical only">Technical Only</option>
+          <option value="Behavioral only">Behavioral Only</option>
+          <option value="System Design">System Design</option>
+          <option value="Leadership and Management">Leadership</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="interviewSkills">Your Key Skills (comma-separated)</label>
+      <input type="text" class="form-control" id="interviewSkills"
+        placeholder="e.g. Python, React, SQL, Machine Learning, AWS"/>
+    </div>
+
+    <div class="flex gap-2 wrap">
+      <button class="btn btn-primary btn-lg" onclick="startSession()" id="startSessionBtn">
+        Start Session &rarr;
+      </button>
+      <button class="btn btn-secondary" onclick="toggleEmotionDetection()" id="emotionToggleBtn">
+        Enable Emotion Cam
+      </button>
+    </div>
+  </div>
+
+  <!-- ── INTERVIEW ARENA ── -->
+  <div id="interviewArena" class="hidden">
+
+    <!-- Progress -->
+    <div class="glass-card ca-p mb-3" style="padding:1rem 1.5rem;">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-sm font-bold">Session Progress</span>
+        <span class="text-sm text-2">Question <span id="currentQNum">1</span> of <span id="totalQNum">5</span></span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="sessionProgress" style="width:20%;"></div>
+      </div>
+    </div>
+
+    <div class="arena-grid">
+      <!-- LEFT: Question + Voice -->
+      <div>
+        <div class="question-card mb-3" id="questionCard">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex gap-1 items-center">
+              <div class="badge badge-p" id="questionType">Behavioral</div>
+              <div class="badge badge-o" id="questionDifficulty">Medium</div>
+            </div>
+            <span class="text-3 text-xs mono">Q<span id="qNum">1</span></span>
+          </div>
+          <h3 style="font-size:1.05rem;line-height:1.6;" id="questionText">Loading your first question...</h3>
+          <div class="mt-2 text-sm text-2">
+            Tip: <span id="questionHint">Take your time and structure your answer well.</span>
+          </div>
+        </div>
+
+        <!-- Voice Recorder -->
+        <div class="glass-card ca-c mb-3">
+          <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:1rem;">
+            <div class="card-icon ci-c" style="margin:0;width:36px;height:36px;font-size:1rem;">&#127908;</div>
+            <h4>Your Answer</h4>
+          </div>
+
+          <div id="waveformContainer" class="waveform hidden" style="margin:1rem 0;">
+            <div class="waveform-bar"></div><div class="waveform-bar"></div>
+            <div class="waveform-bar"></div><div class="waveform-bar"></div>
+            <div class="waveform-bar"></div><div class="waveform-bar"></div>
+            <div class="waveform-bar"></div><div class="waveform-bar"></div>
+          </div>
+
+          <div id="recordTimer" class="record-timer hidden mb-2">
+            <span class="recording-indicator"></span>
+            <span id="timerDisplay" class="mono">0:00</span>
+          </div>
+
+          <div class="flex gap-2 justify-center wrap">
+            <button class="btn btn-primary" id="recordBtn" onclick="toggleRecording()">
+              Start Recording
+            </button>
+            <button class="btn btn-ghost" id="textFallbackBtn" onclick="showTextInput()">
+              Type Instead
+            </button>
+          </div>
+
+          <div id="textInputFallback" class="hidden mt-2">
+            <textarea class="form-control" id="textAnswer" rows="4"
+              placeholder="Type your answer here..."></textarea>
+          </div>
+
+          <div id="transcriptSection" class="hidden mt-2">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-sm font-bold text-cyan">Transcript</span>
+              <button class="btn btn-sm btn-ghost" onclick="editTranscript()">Edit</button>
+            </div>
+            <div id="transcriptText" style="background:rgba(255,255,255,.04);border-radius:var(--r-sm);padding:1rem;font-size:.875rem;color:var(--t2);line-height:1.65;min-height:80px;"></div>
+          </div>
+
+          <button class="btn btn-success w-full mt-2 hidden" id="submitAnswerBtn" onclick="submitAnswer()">
+            Submit &amp; Get AI Feedback &rarr;
+          </button>
+        </div>
+
+        <!-- Navigation -->
+        <div class="flex gap-2 justify-between">
+          <button class="btn btn-secondary" id="skipBtn" onclick="skipQuestion()">Skip Question</button>
+          <button class="btn btn-danger" onclick="endSession()">End &amp; Get Report</button>
+        </div>
+      </div>
+
+      <!-- RIGHT: Emotion + Feedback -->
+      <div>
+        <div class="glass-card ca-pu mb-3" id="emotionCard">
+          <div class="flex items-center justify-between mb-2">
+            <h4>Emotion Detection</h4>
+            <div class="badge badge-pu" id="emotionStatus">Disabled</div>
+          </div>
+          <div class="webcam-frame">
+            <video id="webcamFeed" autoplay muted></video>
+            <canvas id="emotionCanvas"></canvas>
+            <div id="webcamPlaceholder" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--t3);gap:.5rem;">
+              <span style="font-size:2.5rem;">&#128247;</span>
+              <span class="text-sm text-center">Enable emotion detection to activate</span>
+            </div>
+          </div>
+
+          <div class="mt-3" id="emotionBars">
+            <div class="emotion-bar">
+              <span class="emotion-label text-xs">Happy</span>
+              <div class="emotion-track"><div class="emotion-fill" id="emo-happy" style="width:0%;background:var(--g);"></div></div>
+              <span class="emotion-pct" id="emo-happy-pct">0%</span>
+            </div>
+            <div class="emotion-bar">
+              <span class="emotion-label text-xs">Neutral</span>
+              <div class="emotion-track"><div class="emotion-fill" id="emo-neutral" style="width:0%;background:var(--c);"></div></div>
+              <span class="emotion-pct" id="emo-neutral-pct">0%</span>
+            </div>
+            <div class="emotion-bar">
+              <span class="emotion-label text-xs">Nervous</span>
+              <div class="emotion-track"><div class="emotion-fill" id="emo-fearful" style="width:0%;background:var(--o);"></div></div>
+              <span class="emotion-pct" id="emo-fearful-pct">0%</span>
+            </div>
+            <div class="emotion-bar">
+              <span class="emotion-label text-xs">Stressed</span>
+              <div class="emotion-track"><div class="emotion-fill" id="emo-angry" style="width:0%;background:var(--r);"></div></div>
+              <span class="emotion-pct" id="emo-angry-pct">0%</span>
+            </div>
+          </div>
+
+          <div class="stat-card mt-2" style="text-align:center;">
+            <div class="stat-value gradient-text" id="confidenceScore">&mdash;</div>
+            <div class="stat-label">Confidence Score</div>
+          </div>
+        </div>
+
+        <!-- Live Feedback -->
+        <div class="glass-card ca-g" id="liveFeedbackCard">
+          <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:1rem;">
+            <div class="card-icon ci-g" style="margin:0;width:36px;height:36px;font-size:1rem;">&#9889;</div>
+            <h4>Answer Feedback</h4>
+          </div>
+          <div id="answerFeedback">
+            <p class="text-3 text-sm text-center" style="padding:1.5rem 0;">
+              Submit your answer to see detailed AI feedback here.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SESSION REPORT ── -->
+  <div id="sessionReport" class="hidden">
+    <div class="glass-card ca-p text-center mb-4" style="padding:3rem;position:relative;overflow:hidden;">
+      <div style="position:absolute;inset:0;background:radial-gradient(circle at 50% 50%,rgba(124,111,255,.08),transparent 70%);pointer-events:none;"></div>
+      <div style="font-size:3rem;margin-bottom:1rem;">&#128203;</div>
+      <h2 style="font-size:2rem;margin-bottom:.5rem;">Session Complete!</h2>
+      <p class="text-2">Generating your comprehensive failure analysis and improvement plan...</p>
+      <div class="flex justify-center mt-3">
+        <div class="ai-dots"><div class="ai-dot"></div><div class="ai-dot"></div><div class="ai-dot"></div></div>
+      </div>
+    </div>
+
+    <div id="reportContent" class="hidden">
+      <div class="score-breakdown-grid" id="reportStats">
+        <div class="stat-card"><div class="stat-value gradient-text" id="reportOverall">&mdash;</div><div class="stat-label">Overall</div></div>
+        <div class="stat-card"><div class="stat-value text-purple"  id="reportTechnical">&mdash;</div><div class="stat-label">Technical</div></div>
+        <div class="stat-card"><div class="stat-value text-cyan"    id="reportComms">&mdash;</div><div class="stat-label">Communication</div></div>
+        <div class="stat-card"><div class="stat-value text-success" id="reportConfidence">&mdash;</div><div class="stat-label">Confidence</div></div>
+        <div class="stat-card"><div class="stat-value text-warning" id="reportStructure">&mdash;</div><div class="stat-label">Structure</div></div>
+      </div>
+
+      <div class="glass-card ca-o mb-3" id="hireRecommendationCard">
+        <div class="flex items-center gap-2 mb-2">
+          <h3>Hire Recommendation</h3>
+          <div class="badge badge-o" id="hireRecommendation">&mdash;</div>
+        </div>
+        <p class="text-2 text-sm" id="hireExplanation">&mdash;</p>
+      </div>
+
+      <div class="glass-card ca-r mb-3">
+        <h3 class="mb-3">Failure Analysis &mdash; Why You Might Get Rejected</h3>
+        <div id="rejectionReasons"></div>
+      </div>
+
+      <div class="glass-card ca-g mb-3">
+        <h3 class="mb-3">Top 3 Improvements</h3>
+        <div id="topImprovements"></div>
+      </div>
+
+      <div class="glass-card mb-3">
+        <h3 class="mb-2">Encouragement</h3>
+        <p class="text-2" id="encouragement">&mdash;</p>
+        <div class="divider"></div>
+        <h4 class="mb-2">Next Steps</h4>
+        <ul id="nextSteps" style="padding-left:1.2rem;color:var(--t2);font-size:.9rem;line-height:2;"></ul>
+        <div class="flex gap-2 mt-3 wrap">
+          <a href="roadmap.html" class="btn btn-primary">Build Improvement Roadmap &rarr;</a>
+          <button class="btn btn-ghost" onclick="restartInterview()">Try Again</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<script src="js/app.js"></script>
+<script src="js/interview.js"></script>
+</body>
+</html>

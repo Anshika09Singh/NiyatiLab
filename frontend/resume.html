@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Resume Analyzer | CareerAI</title>
+  <meta name="description" content="Upload your resume for deep AI analysis — ATS score, skill extraction, career predictions, and actionable feedback."/>
+  <link rel="stylesheet" href="css/style.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" defer></script>
+  <style>
+    .page-hero {
+      padding: 3.5rem 0 2rem;
+      position: relative;
+    }
+    .page-hero::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: radial-gradient(ellipse 60% 80% at 10% 50%, rgba(124,111,255,.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .upload-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    @media(max-width:700px){ .upload-layout{grid-template-columns:1fr;} }
+
+    /* Animated scan line when loading */
+    .scan-line {
+      position: absolute;
+      left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg,transparent,var(--p),var(--c),transparent);
+      animation: scan 2s ease-in-out infinite;
+      opacity: .8;
+    }
+    @keyframes scan {
+      0%  { top:-2px; }
+      100%{ top:100%; }
+    }
+
+    /* Result header banner */
+    .result-banner {
+      background: linear-gradient(135deg,rgba(124,111,255,.12),rgba(6,182,212,.07));
+      border: 1px solid rgba(124,111,255,.22);
+      border-radius: var(--r-xl);
+      padding: 2rem 2.5rem;
+      display: flex; align-items: center; gap: 2rem;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+    }
+    .ats-ring-wrap { flex-shrink: 0; }
+  </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar" id="mainNav">
+  <a href="index.html" class="nav-logo">
+    <div class="nav-logo-icon">&#129504;</div>
+    <span class="nav-logo-text">Career<span>AI</span></span>
+  </a>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="resume.html" class="active">Resume</a></li>
+    <li><a href="interview.html">Interview</a></li>
+    <li><a href="roadmap.html">Roadmap</a></li>
+    <li><a href="jobs.html">Jobs</a></li>
+  </ul>
+  <div class="nav-toggle" onclick="document.getElementById('navLinks').classList.toggle('open')">
+    <span></span><span></span><span></span>
+  </div>
+</nav>
+
+<div class="page-wrapper">
+<div class="container">
+
+  <!-- Page hero -->
+  <div class="page-hero">
+    <div class="hero-badge" style="margin-bottom:1rem;">
+      <span class="dot"></span>AI-Powered Resume Intelligence
+    </div>
+    <h1 style="font-size:clamp(2rem,4vw,3.2rem);">
+      <span class="gradient-text">Resume</span> Intelligence Engine
+    </h1>
+    <p class="text-2 mt-1" style="max-width:560px;">
+      Upload your resume for a 360° deep analysis — ATS score, skill mapping,
+      career predictions, and actionable feedback in under 30 seconds.
+    </p>
+  </div>
+
+  <!-- Upload Section -->
+  <div class="upload-layout" id="uploadSection">
+
+    <!-- Drop Zone Card -->
+    <div class="glass-card ca-p" style="position:relative;overflow:hidden;">
+      <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:1.25rem;">
+        <div class="card-icon ci-p" style="margin:0;width:40px;height:40px;font-size:1.2rem;">&#128196;</div>
+        <h3 style="font-size:1rem;">Upload Resume</h3>
+      </div>
+      <div class="upload-zone" id="uploadZone">
+        <span class="upload-icon">&#128196;</span>
+        <p style="font-size:1rem;font-weight:700;margin-bottom:6px;">Drop your resume here</p>
+        <p class="text-2 text-sm">PDF or DOCX &bull; Max 16 MB</p>
+        <div class="mt-2">
+          <span class="badge badge-p">Click or drag to upload</span>
+        </div>
+        <input type="file" id="resumeFile" accept=".pdf,.docx,.doc"/>
+      </div>
+      <div id="fileInfo" class="hidden mt-2 alert alert-success">
+        <span class="alert-icon">&#9989;</span>
+        <span id="fileName">File selected</span>
+      </div>
+    </div>
+
+    <!-- JD Card -->
+    <div class="glass-card ca-c">
+      <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:1.25rem;">
+        <div class="card-icon ci-c" style="margin:0;width:40px;height:40px;font-size:1.2rem;">&#128203;</div>
+        <h3 style="font-size:1rem;">Job Description <span class="badge badge-c" style="font-size:.68rem;">Optional</span></h3>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="jobDescription">Target Job Description</label>
+        <textarea class="form-control" id="jobDescription" rows="5"
+          placeholder="Paste the job description here for ATS matching and personalized feedback..."></textarea>
+      </div>
+      <div class="form-group" style="margin-bottom:.5rem;">
+        <label class="form-label" for="targetRole">Target Role</label>
+        <input type="text" class="form-control" id="targetRole" placeholder="e.g. Senior Data Scientist"/>
+      </div>
+      <button class="btn btn-primary w-full btn-lg mt-2" id="analyzeBtn" onclick="analyzeResume()">
+        Analyze My Resume &rarr;
+      </button>
+    </div>
+
+  </div>
+
+  <!-- Results Section -->
+  <div id="resultsSection" class="hidden">
+
+    <!-- Loading State -->
+    <div id="loadingState" class="glass-card text-center" style="padding:4rem;position:relative;overflow:hidden;">
+      <div class="scan-line"></div>
+      <div class="ai-pulse-ring" style="margin:0 auto 1.5rem;width:70px;height:70px;">
+        <div style="width:70px;height:70px;background:linear-gradient(135deg,rgba(124,111,255,.2),rgba(6,182,212,.15));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:2rem;">&#129504;</div>
+      </div>
+      <div class="ai-dots mb-2"><div class="ai-dot"></div><div class="ai-dot"></div><div class="ai-dot"></div></div>
+      <p style="color:var(--t2);font-size:1rem;" id="loadingMsg">Analyzing your resume with AI...</p>
+      <p class="text-3 text-sm mt-1">This usually takes 15–30 seconds</p>
+    </div>
+
+    <!-- Analysis Results -->
+    <div id="analysisResults" class="hidden">
+
+      <!-- Result banner -->
+      <div class="result-banner" id="resultBanner">
+        <div class="ats-ring-wrap">
+          <div class="score-ring">
+            <svg width="100" height="100" viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="8"/>
+              <circle cx="50" cy="50" r="42" fill="none" stroke="url(#rg)" stroke-width="8"
+                stroke-dasharray="264" stroke-dashoffset="264" stroke-linecap="round" id="atsArc"/>
+              <defs>
+                <linearGradient id="rg" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#7c6fff"/>
+                  <stop offset="100%" stop-color="#06b6d4"/>
+                </linearGradient>
+              </defs>
+            </svg>
+            <div class="score-ring-label">
+              <div class="score-ring-value gradient-text" id="atsScoreDisplay">--</div>
+              <div class="score-ring-unit">/100</div>
+            </div>
+          </div>
+        </div>
+        <div style="flex:1;">
+          <div id="atsVerdict" class="badge badge-p mb-1">ATS Score</div>
+          <h2 style="font-size:1.5rem;" id="candidateName">--</h2>
+          <p class="text-2 text-sm" id="candidateSummary">Loading assessment...</p>
+          <div class="flex gap-1 mt-2 wrap" id="bannerMeta"></div>
+        </div>
+        <div class="flex flex-col gap-1">
+          <a href="roadmap.html" class="btn btn-primary btn-sm">Get Roadmap &rarr;</a>
+          <a href="interview.html" class="btn btn-ghost btn-sm">Practice Interview</a>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="tab-nav" id="resultTabs">
+        <button class="tab-btn active" onclick="switchTab('overview')"  id="tab-overview">Overview</button>
+        <button class="tab-btn"        onclick="switchTab('ats')"       id="tab-ats">ATS Score</button>
+        <button class="tab-btn"        onclick="switchTab('skills')"    id="tab-skills">Skills</button>
+        <button class="tab-btn"        onclick="switchTab('career')"    id="tab-career">Career Paths</button>
+        <button class="tab-btn"        onclick="switchTab('feedback')"  id="tab-feedback">Feedback</button>
+      </div>
+
+      <!-- TAB: OVERVIEW -->
+      <div class="tab-content active" id="tab-overview-content">
+        <div class="stats-grid mb-3" id="quickStats">
+          <div class="stat-card"><div class="stat-value text-cyan"  id="statWords">--</div><div class="stat-label">Word Count</div></div>
+          <div class="stat-card"><div class="stat-value text-purple" id="statSkills">--</div><div class="stat-label">Skills Found</div></div>
+          <div class="stat-card"><div class="stat-value text-success" id="statSections">--</div><div class="stat-label">Sections</div></div>
+          <div class="stat-card"><div class="stat-value text-warning" id="statProjects">--</div><div class="stat-label">Projects</div></div>
+          <div class="stat-card"><div class="stat-value text-danger"  id="statExp">--</div><div class="stat-label">Yrs Experience</div></div>
+        </div>
+
+        <div class="glass-card">
+          <h3 style="margin-bottom:1.25rem;">Score Breakdown</h3>
+          <div id="scoreBreakdown"></div>
+        </div>
+
+        <div class="glass-card mt-3">
+          <h3 style="margin-bottom:1rem;">Candidate Details</h3>
+          <div class="grid-2" id="candidateDetails"></div>
+        </div>
+      </div>
+
+      <!-- TAB: ATS -->
+      <div class="tab-content" id="tab-ats-content">
+        <div class="grid-2">
+          <div class="glass-card ca-p">
+            <h3 class="mb-2">Keyword Analysis</h3>
+            <h4 class="text-sm text-success mb-2">Matched Keywords</h4>
+            <div id="keywordMatched" class="mb-3"></div>
+            <div class="divider"></div>
+            <h4 class="text-sm text-danger mb-2">Missing Keywords</h4>
+            <div id="keywordMissing"></div>
+          </div>
+          <div class="glass-card ca-c">
+            <h3 class="mb-2">Critical Issues</h3>
+            <ul id="criticalIssues" style="padding-left:1.2rem;color:var(--t2);font-size:.9rem;line-height:2;"></ul>
+            <div class="divider"></div>
+            <h3 class="mb-2">Improvements</h3>
+            <ul id="improvements" style="padding-left:1.2rem;color:var(--t2);font-size:.9rem;line-height:2;"></ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: SKILLS -->
+      <div class="tab-content" id="tab-skills-content">
+        <div class="grid-3 mb-3">
+          <div class="glass-card ca-p"><h3 class="mb-2">Technical Skills</h3><div id="techSkills" class="flex wrap gap-1"></div></div>
+          <div class="glass-card ca-c"><h3 class="mb-2">Soft Skills</h3><div id="softSkills" class="flex wrap gap-1"></div></div>
+          <div class="glass-card ca-g"><h3 class="mb-2">Tools & Platforms</h3><div id="toolSkills" class="flex wrap gap-1"></div></div>
+        </div>
+        <div class="glass-card mb-3"><h3 class="mb-2">Projects</h3><div id="projects" class="grid-2"></div></div>
+        <div class="glass-card"><h3 class="mb-2">Education & Certifications</h3><div id="education" class="grid-2"></div></div>
+      </div>
+
+      <!-- TAB: CAREER -->
+      <div class="tab-content" id="tab-career-content">
+        <div id="careerLoadingAlert" class="alert alert-info">
+          <span class="alert-icon">&#8505;</span>
+          <span>Career predictions load on demand.
+            <button class="btn btn-sm btn-ghost" onclick="loadCareerPredictions()">Load Predictions &rarr;</button>
+          </span>
+        </div>
+        <div id="careerPredictions" class="hidden">
+          <div id="careerPathsGrid" class="grid-2"></div>
+          <div class="glass-card mt-3 hidden" id="marketInsights">
+            <h3 class="mb-2">Market Insights</h3>
+            <div id="marketInsightsContent"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: FEEDBACK -->
+      <div class="tab-content" id="tab-feedback-content">
+        <div class="grid-2 mb-3">
+          <div class="glass-card ca-g">
+            <h3 class="mb-2">Strengths</h3>
+            <ul id="strengthsList" style="padding-left:1.2rem;color:var(--t2);font-size:.9rem;line-height:2.1;"></ul>
+          </div>
+          <div class="glass-card ca-r">
+            <h3 class="mb-2">Areas to Improve</h3>
+            <ul id="weaknessesList" style="padding-left:1.2rem;color:var(--t2);font-size:.9rem;line-height:2.1;"></ul>
+          </div>
+        </div>
+        <div class="glass-card">
+          <h3 class="mb-2">Next Actions</h3>
+          <div id="nextActions"></div>
+          <div class="flex gap-2 mt-3 wrap">
+            <a href="roadmap.html"   class="btn btn-primary">Get Skill Roadmap &rarr;</a>
+            <a href="interview.html" class="btn btn-ghost">Practice Interview</a>
+            <a href="jobs.html"      class="btn btn-secondary">Match Jobs</a>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /analysisResults -->
+  </div><!-- /resultsSection -->
+
+</div><!-- /container -->
+</div><!-- /page-wrapper -->
+
+<script src="js/app.js"></script>
+<script src="js/resume.js"></script>
+</body>
+</html>
